@@ -53,6 +53,7 @@ int reservar(int k) {
     parking[i] = 1;
   }
   display++;
+  pthread_cond_broadcast(&c);
   pthread_mutex_unlock(&m);
   return place;
 }
