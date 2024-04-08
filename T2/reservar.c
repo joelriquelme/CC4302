@@ -26,15 +26,16 @@ void cleanReservar() {
 }
 
 int canPark(int k) {
+  int j = 0;
   for (int i = 0; i < 10; i++) {
     if (parking[i] == 0) {
-      int j = i;
-      while (j < 10 && parking[j] == 0) {
-        j++;
+      j++;
+      if (j >= k) {
+        return i-j+1;
       }
-      if (j - i >= k) {
-        return i;
-      }
+    }
+    else {
+      j = 0;
     }
   }
   return -1;
@@ -43,26 +44,21 @@ int canPark(int k) {
 int reservar(int k) {
   pthread_mutex_lock(&m);
   int my_num = ticket_dist++;
-  //printf("Ticket: %d\n", my_num);
-  //printf("Display: %d\n", display);
-  //se espera a que sea el turno del vehiculo y si es que hay un lugar disponible
-  while (my_num != display) {
-    pthread_cond_wait(&c, &m);
-  }
-  while (canPark(k) == -1) {
-    pthread_cond_wait(&c, &m);
-  }
   int place = canPark(k);
+  while (my_num != display || place == -1 ) {
+    pthread_cond_wait(&c, &m);
+    place = canPark(k);
+  }
   for (int i = place; i < place + k; i++) {
     parking[i] = 1;
   }
+  display++;
   pthread_mutex_unlock(&m);
   return place;
 }
 
 void liberar(int e, int k) {
   pthread_mutex_lock(&m);
-  display++;
   for (int i = e; i < e + k; i++) {
     parking[i] = 0;
   }
