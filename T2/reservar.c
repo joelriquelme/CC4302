@@ -26,16 +26,15 @@ void cleanReservar() {
 }
 
 int canPark(int k) {
-  int j = 0;
   for (int i = 0; i < 10; i++) {
     if (parking[i] == 0) {
-      j++;
-      if (j >= k) {
-        return i-j+1;
+      int j = i;
+      while (j < 10 && parking[j] == 0) {
+        j++;
       }
-    }
-    else {
-      j = 0;
+      if (j - i >= k) {
+        return i;
+      }
     }
   }
   return -1;
