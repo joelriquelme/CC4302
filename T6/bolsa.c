@@ -16,7 +16,7 @@ char *comprador_gl = NULL;
 int *pcond = NULL;
 int *pestado = NULL;
 
-int q = 0;
+int ofertado = 0;
 
 
 
@@ -24,7 +24,7 @@ int q = 0;
 int vendo(int precio, char *vendedor, char *comprador) {
   spinLock(&mutex);
   if (precio < precio_gl) {
-    if (q) {
+    if (ofertado) {
       spinUnlock(pcond);
     }
     precio_gl = precio;
@@ -34,11 +34,11 @@ int vendo(int precio, char *vendedor, char *comprador) {
     pestado = &estado; 
     comprador_gl = comprador;
     vendedor_gl = vendedor; 
-    q = 1;
+    ofertado = 1;
     spinUnlock(&mutex);
     spinLock(&cond);
     spinLock(&mutex);
-    if (*pestado == 1) {
+    if (estado == 1) {
       spinUnlock(&mutex);
       return 1;
     }
@@ -49,16 +49,15 @@ int vendo(int precio, char *vendedor, char *comprador) {
 
 int compro(char *comprador, char *vendedor) {
   spinLock(&mutex);
-  if (!q) {
+  if (!ofertado) {
     spinUnlock(&mutex);
     return 0;
   }
   else {
-    int estado = 1;
-    pestado = &estado;
+    *pestado = 1;
     int precio = precio_gl;
     precio_gl = INT_MAX;
-    q = 0;
+    ofertado = 0;
     strcpy(comprador_gl, comprador);
     strcpy(vendedor, vendedor_gl);
     spinUnlock(pcond);
